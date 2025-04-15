@@ -1,21 +1,19 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Link } from "react-router";
 import { loginFormSchema } from "@/lib/authFilter";
 import { Button } from "@/components/ui/button";
 import LIBRIVERSE from "@/assets/LIBRIVERSE.png";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const LoginPage = () => {
   // Define login form.
@@ -87,8 +85,18 @@ const LoginPage = () => {
 
               {/* User not registered */}
               <div className="flex items-center justify-between">
-                <p className="text-blue-600 underline font-semibold text-sm">Forgot Password</p>
-                <p className="text-blue-600 underline font-semibold text-sm">Don't have an Account?</p>
+                <Link
+                  to="/register"
+                  className="text-blue-600 underline font-semibold text-sm"
+                >
+                  Forgot Password
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-blue-600 underline font-semibold text-sm"
+                >
+                  Don't have an Account?
+                </Link>
               </div>
               <Button type="submit" className="w-full md:w-fit">
                 Submit
