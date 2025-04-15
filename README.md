@@ -1,10 +1,8 @@
 # LibriVerse
 
 <!-- Image -->
-<p align="center">
-  <img src="LIBRIVERSE.png"
-   alt="App Logo"/>
-</p>
+
+![LOGO](LIBRIVERSE.png){ width="800" height="600" style="display: block; margin: 0 auto" }
 
 ## Description
 
