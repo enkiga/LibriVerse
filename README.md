@@ -2,7 +2,7 @@
 
 <!-- Image -->
 
-![LOGO](LIBRIVERSE.png){ width="800" height="600" style="display: block; margin: 0 auto" }
+![LOGO](LIBRIVERSE.png#center)
 
 ## Description
 
