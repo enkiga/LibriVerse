@@ -1,0 +1,23 @@
+{
+  "name": "libriverse",
+  "version": "1.0.0",
+  "description": "This project aims to create a platform where users can discover and share book recommendations, fostering a community of book lovers. The app should provide an intuitive and engaging user experience, allowing users to easily find books, rate them, and connect with other readers.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enkiga/LibriVerse.git"
+  },
+  "author": "Enoch Garoli",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/enkiga/LibriVerse/issues"
+  },
+  "homepage": "https://github.com/enkiga/LibriVerse#readme"
+}
