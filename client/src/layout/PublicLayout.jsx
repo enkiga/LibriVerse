@@ -7,10 +7,10 @@ const PublicLayout = () => {
   return (
     <>
       <Navbar />
-      <div className=" container">
+      <div className=" container min-h-dvh">
         <Outlet />
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 };

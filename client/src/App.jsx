@@ -12,6 +12,7 @@ import {
   LoginPage,
   RegisterPage,
   BooksPage,
+  ProfilePage,
 } from "./pages";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="books" element={<BooksPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         <Route element={<AuthLayout />}>
