@@ -4,10 +4,16 @@ require("dotenv").config();
 // Importing requirements
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
+
+const authRouter = require("./routers/authRouter");
 
 // Setting up express
 const app = express();
 app.use(express.json());
+
+// Allowing all origins
+app.use(cors());
 
 // Assign port value with fallback
 const port = process.env.PORT || 8000;
@@ -21,6 +27,8 @@ mongoose
   .catch((err) => {
     console.log(`MondoDB error ${err}`);
   });
+
+app.use("/api/auth", authRouter);
 
 // Test to see if server is running
 app.get("/", (req, res) => {
