@@ -29,3 +29,5 @@ const recommendationSchema = mongoose.Schema(
     timestamp: true,
   }
 );
+
+module.exports = mongoose.model("Recommendation", recommendationSchema);

@@ -13,3 +13,5 @@ const genreSchema = mongoose.Schema(
     timestamp: true,
   }
 );
+
+module.exports = mongoose.model("Genre", genreSchema)
