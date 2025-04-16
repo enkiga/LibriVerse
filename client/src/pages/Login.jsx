@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { loginFormSchema } from "@/lib/authFilter";
 import { Button } from "@/components/ui/button";
 import LIBRIVERSE from "@/assets/LIBRIVERSE.png";
@@ -14,8 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { auth } from "@/api";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   // Define login form.
   const form = useForm({
     resolver: zodResolver(loginFormSchema),
@@ -26,10 +32,38 @@ const LoginPage = () => {
   });
 
   // Define a submit handler.
-  function onSubmit(values) {
+  const onSubmit = async (values) => {
     // For testing let us just console log the values
-    console.log(`User Test ${values.email} - ${values.password}`);
-  }
+    // console.log(`User Test ${values.email} - ${values.password}`);
+
+    // Login Logic
+    try {
+      const { email, password } = values;
+      const response = await auth.signin({ email, password });
+      // Redirect after short delay
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (error) {
+      console.error("Login failed:", error);
+      setErrorMessage(error.message || "Login failed. Please try again.");
+
+      toast(
+        //   {
+        //   title: "Login Failed",
+        //   description: error.message || "Invalid credentials",
+        //   variant: "destructive",
+        // }
+
+        "Login Failed",
+        {
+          description: `${error.message || "Invalid Credentials"}`,
+        }
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <section className="w-full flex h-dvh">
@@ -98,8 +132,12 @@ const LoginPage = () => {
                   Don't have an Account?
                 </Link>
               </div>
-              <Button type="submit" className="w-full md:w-fit">
-                Submit
+              <Button
+                type="submit"
+                className="w-full md:w-fit"
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>

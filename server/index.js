@@ -13,7 +13,12 @@ const app = express();
 app.use(express.json());
 
 // Allowing all origins
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 // Assign port value with fallback
 const port = process.env.PORT || 8000;

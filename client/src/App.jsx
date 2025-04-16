@@ -14,6 +14,7 @@ import {
   BooksPage,
   ProfilePage,
 } from "./pages";
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   // Add RootLayout Routers
@@ -35,7 +36,12 @@ function App() {
     )
   );
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster />
+    </>
+  );
 }
 
 export default App;
