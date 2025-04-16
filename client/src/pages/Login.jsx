@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { auth } from "@/api";
+import { Loader2 } from "lucide-react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const LoginPage = () => {
     // Login Logic
     try {
       const { email, password } = values;
+      setIsLoading(true);
       const response = await auth.signin({ email, password });
       // Redirect after short delay
       setTimeout(() => {
@@ -46,20 +48,13 @@ const LoginPage = () => {
       }, 1500);
     } catch (error) {
       console.error("Login failed:", error);
-      setErrorMessage(error.message || "Login failed. Please try again.");
+      errorMessage = error.message;
+      setIsLoading(false);
+      setErrorMessage(errorMessage || "Login failed. Please try again.");
 
-      toast(
-        //   {
-        //   title: "Login Failed",
-        //   description: error.message || "Invalid credentials",
-        //   variant: "destructive",
-        // }
-
-        "Login Failed",
-        {
-          description: `${error.message || "Invalid Credentials"}`,
-        }
-      );
+      toast("Login Failed", {
+        description: `${errorMessage || "Invalid Credentials"}`,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -132,13 +127,23 @@ const LoginPage = () => {
                   Don't have an Account?
                 </Link>
               </div>
-              <Button
+              {/* <Button
                 type="submit"
                 className="w-full md:w-fit"
                 disabled={isLoading}
               >
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
+                {isLoading ? "Logging in..." : "Submit"}
+              </Button> */}
+              {!isLoading ? (
+                <Button type="submit" className="w-full md:w-fit">
+                  Submit
+                </Button>
+              ) : (
+                <Button disabled>
+                  <Loader2 className="animate-spin" />
+                  Please wait
+                </Button>
+              )}
             </form>
           </Form>
         </div>

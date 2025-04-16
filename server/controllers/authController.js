@@ -4,9 +4,13 @@ const User = require("../models/userModel");
 const { doHash, doHashValidation } = require("../utils/hashing");
 
 exports.signup = async (req, res) => {
-  const { username, email, password  } = req.body;
+  const { username, email, password } = req.body;
   try {
-    const { error, value } = signUpSchema.validate({ email, password, username });
+    const { error, value } = signUpSchema.validate({
+      email,
+      password,
+      username,
+    });
 
     // Error handling
     if (error) {
@@ -25,12 +29,12 @@ exports.signup = async (req, res) => {
     }
 
     // username
-    const existingUserName = await User.findOne({ username})
+    const existingUserName = await User.findOne({ username });
     if (existingUserName) {
-        return res.status(401).json({
-            success: false,
-            message: "Username Already Exist",
-          });
+      return res.status(401).json({
+        success: false,
+        message: "Username Already Exist",
+      });
     }
 
     // Password handling
@@ -54,9 +58,9 @@ exports.signup = async (req, res) => {
   } catch (error) {
     console.log("Authentication error", error);
     return res.status(501).json({
-        success: false,
-        message: `Server Authenntication error ${error}!`
-    })
+      success: false,
+      message: `Server Authenntication error ${error}!`,
+    });
   }
 };
 
@@ -106,10 +110,12 @@ exports.signin = async (req, res) => {
     );
 
     res
-      .cookie("Authorization", "Bearer" + token, {
-        expires: new Date(Date.now() + 8 * 3600000),
-        httpOnly: process.env.NODE_ENV === "production",
-        secure: process.env.NODE_ENV === "production",
+      .cookie("Authorization", `Bearer ${token}`, {
+        httpOnly: true, // Prevent XSS
+        secure: process.env.NODE_ENV === "production", // HTTPS only
+        sameSite: "strict", // Prevent CSRF
+        maxAge: 8 * 60 * 60 * 1000, // 8 hours
+        path: "/",
       })
       .json({
         success: true,
@@ -126,4 +132,30 @@ exports.signout = async (req, res) => {
     .clearCookie("Authorization")
     .status(200)
     .json({ success: true, message: "Logged out successfully" });
+};
+
+exports.getCurrentUser = async (req, res) => {
+  try {
+    // User is already set in the request by the identifier middleware
+    const user = await User.findById(req.user.userId).select("-password");
+
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.log("Get Current User Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
 };

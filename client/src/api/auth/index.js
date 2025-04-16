@@ -11,11 +11,11 @@ export const signup = async (userData) => {
 
 export const signin = async (credentials) => {
   try {
-    const response = await client.post("/auth/signin", credentials);
-    // Store token in localStorage if needed
-    if (response.data.token) {
-      localStorage.setItem("token", response.data.token);
-    }
+    const response = await client.post("/auth/signin", credentials, {
+      withCredentials: true, // Required for cookies
+    });
+
+    // No client-side token storage needed
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -24,17 +24,16 @@ export const signin = async (credentials) => {
 
 export const signout = async () => {
   try {
-    const response = await client.post("/auth/signout");
-    localStorage.removeItem("token");
-    return response.data;
+    await client.post("/auth/signout");
   } catch (error) {
     throw error.response?.data || error.message;
   }
 };
 
-export const authStatus = async () => {
+// Get current user
+export const getCurrentUser = async () => {
   try {
-    const response = await client.get("/auth/status");
+    const response = await client.get("/auth/user");
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

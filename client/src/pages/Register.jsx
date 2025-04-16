@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { registerFormSchema } from "@/lib/authFilter";
 import { Button } from "@/components/ui/button";
 import LIBRIVERSE from "@/assets/LIBRIVERSE.png";
@@ -14,8 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { auth } from "@/api";
+import { Loader2 } from "lucide-react";
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   // Define registration form.
   const form = useForm({
     resolver: zodResolver(registerFormSchema),
@@ -27,12 +33,37 @@ const RegisterPage = () => {
   });
 
   // Define a submit handler.
-  function onSubmit(values) {
-    // For testing let us just console log the values
-    console.log(values.username);
-    console.log(values.email);
-    console.log(values.password);
-  }
+  const onSubmit = async (values) => {
+    // // For testing let us just console log the values
+    // console.log(values.username);
+    // console.log(values.email);
+    // console.log(values.password);
+
+    // Registration Logic
+    try {
+      const { username, email, password } = values;
+      setIsLoading(true);
+      const response = await auth.signup({ username, email, password });
+
+      toast("Registration Successfull", {
+        description: "Will be directed to login shortly",
+      });
+      // Redirect to login page
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (error) {
+      console.error("Login failed:", error);
+      setIsLoading(false);
+      setErrorMessage(error.message || "Registration failed. Please try again.");
+
+      toast("Registration Failed", {
+        description: `${error.message || "Invalid Credentials"}`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <section className="w-full flex h-dvh md:h-full ">
       {/* Image Section */}
@@ -120,9 +151,16 @@ const RegisterPage = () => {
                   Already have an Account?
                 </Link>
               </div>
-              <Button type="submit" className="w-full md:w-fit">
-                Submit
-              </Button>
+              {!isLoading ? (
+                <Button type="submit" className="w-full md:w-fit">
+                  Submit
+                </Button>
+              ) : (
+                <Button disabled>
+                  <Loader2 className="animate-spin" />
+                  Please wait
+                </Button>
+              )}
             </form>
           </Form>
         </div>
