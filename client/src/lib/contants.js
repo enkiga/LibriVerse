@@ -11,13 +11,11 @@ const publicNavLinks = [
     route: "/books",
     name: "Books",
   },
-];
-
-const protectedNavLinks = [
   {
     route: "/profile",
     name: "Profile",
   },
 ];
 
-export { publicNavLinks, protectedNavLinks };
+
+export { publicNavLinks };

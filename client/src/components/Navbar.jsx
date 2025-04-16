@@ -1,8 +1,8 @@
-import { protectedNavLinks, publicNavLinks } from "@/lib/contants";
+import { publicNavLinks } from "@/lib/contants";
 import React from "react";
 import LIBRIVERSE from "@/assets/LIBRIVERSE.png";
 import { NavLink } from "react-router";
-import { UserRoundIcon } from "lucide-react";
+import { LogOutIcon } from "lucide-react";
 
 const Navbar = () => {
   const glassBg =
@@ -42,14 +42,11 @@ const Navbar = () => {
         {/* Auth Routes */}
         <div className={`flex items-center gap-1 ${glassBg}`}>
           <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              isActive
-                ? "rounded-xl bg-primary/20 px-2 py-1 my-0.5 "
-                : "rounded-xl text-gray-700 hover:text-[#ec8718] transition duration-500 ease-in-out px-2 py-1 my-0.5"
-            }
+            to="/logout"
+            className="flex items-center text-gray-700 hover:text-[#ec8718] transition duration-500 ease-in-out px-2 py-1 my-0.5"
           >
-            <UserRoundIcon className="" />
+            <LogOutIcon />
+            <p>Logout</p>
           </NavLink>
         </div>
       </div>
