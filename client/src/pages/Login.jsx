@@ -17,9 +17,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { auth } from "@/api";
 import { Loader2 } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useUser(); // Get refreshUser function from context
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -34,26 +36,26 @@ const LoginPage = () => {
 
   // Define a submit handler.
   const onSubmit = async (values) => {
-    // For testing let us just console log the values
-    // console.log(`User Test ${values.email} - ${values.password}`);
-
     // Login Logic
     try {
       const { email, password } = values;
       setIsLoading(true);
-      const response = await auth.signin({ email, password });
-      // Redirect after short delay
-      setTimeout(() => {
-        navigate("/");
-      }, 1500);
+      await auth.signin({ email, password });
+
+      // Wait for cookie to be set
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Refresh user data
+      await refreshUser(); // Call refreshUser to update user state
+
+      // Navigate to the home page after successful login
+      navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
-      errorMessage = error.message;
       setIsLoading(false);
-      setErrorMessage(errorMessage || "Login failed. Please try again.");
+      setErrorMessage(error.message || "Login failed. Please try again.");
 
       toast("Login Failed", {
-        description: `${errorMessage || "Invalid Credentials"}`,
+        description: `${error.message || "Invalid Credentials"}`,
       });
     } finally {
       setIsLoading(false);

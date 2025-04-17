@@ -5,12 +5,16 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const cookieParser = require('cookie-parser');
 
 const authRouter = require("./routers/authRouter");
 
 // Setting up express
 const app = express();
 app.use(express.json());
+
+// Parsing cookies
+app.use(cookieParser());
 
 // Allowing all origins
 app.use(

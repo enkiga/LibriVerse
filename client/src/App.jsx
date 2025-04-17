@@ -15,6 +15,7 @@ import {
   ProfilePage,
 } from "./pages";
 import { Toaster } from "./components/ui/sonner";
+import { UserProvider } from "./context/UserContext";
 
 function App() {
   // Add RootLayout Routers
@@ -37,10 +38,10 @@ function App() {
   );
 
   return (
-    <>
+    <UserProvider>
       <RouterProvider router={router} />
       <Toaster />
-    </>
+    </UserProvider>
   );
 }
 
