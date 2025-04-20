@@ -6,7 +6,7 @@ const Footer = () => {
   const year = date.getFullYear();
 
   return (
-    <footer className="bg-background border-t-2 border-primary">
+    <footer className="border-t-2 border-primary">
       <div className="mx-auto w-full px-4 py-3 ">
         <p className="my-1 w-full text-center text-sm text-text">
           Copyright &copy; {year}. All rights reserved.

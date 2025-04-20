@@ -2,33 +2,28 @@ import { publicNavLinks } from "@/lib/contants";
 import React from "react";
 import LIBRIVERSE from "@/assets/LIBRIVERSE.png";
 import { NavLink } from "react-router";
-import { LogOutIcon } from "lucide-react";
+import { AlignRightIcon, LogOutIcon } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { auth } from "@/api";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "./ui/button";
 
 const Navbar = () => {
   const glassBg =
-    "rounded-full px-2 py-1 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 shadow-sm";
+    "rounded-full  px-2 py-1 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 shadow-sm";
 
   const { user, loading } = useUser();
 
-
   // condition to check if user is loading or not
   if (loading) {
-    return (
-      <nav className="fixed top-2 right-2 left-2 z-10 ">
-        <div className="w-full mx-auto flex items-center justify-between px-4">
-          <div className={`flex items-center gap-1 ${glassBg}`}>
-            <img
-              src={LIBRIVERSE}
-              alt="Logo"
-              className="w-10 h-10 object-contain"
-            />
-            <p className="font-semibold text-gray-700">LibriVerse</p>
-          </div>
-        </div>
-      </nav>
-    );
+    return <></>;
   }
 
   // Logout function
@@ -43,10 +38,23 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-2 right-2 left-2 z-10 ">
-      <div className="w-full mx-auto flex items-center justify-between px-4">
+    <nav className="fixed top-2 right-2 left-2 z-10 shadow-md md:shadow-none max-md:bg-background/80 backdrop-blur-sm rounded-md md:rounded-none">
+      <div
+        className={`w-full mx-auto flex items-center justify-between px-4 py-2`}
+      >
         {/* Logo */}
-        <div className={`flex items-center gap-1 ${glassBg}`}>
+        <div className={`md:flex hidden items-center gap-1 ${glassBg}`}>
+          <img
+            src={LIBRIVERSE}
+            alt="Logo"
+            className="w-10 h-10 object-contain"
+          />
+          <p className="hidden md:block font-semibold text-gray-700">
+            LibriVerse
+          </p>
+        </div>
+        {/* Mobile Logo */}
+        <div className="flex md:hidden items-center gap-1">
           <img
             src={LIBRIVERSE}
             alt="Logo"
@@ -55,7 +63,9 @@ const Navbar = () => {
           <p className="font-semibold text-gray-700">LibriVerse</p>
         </div>
         {/* Main Routes */}
-        <div className={`flex items-center gap-4 font-semibold ${glassBg}`}>
+        <div
+          className={`md:flex items-center hidden gap-4 font-semibold ${glassBg}`}
+        >
           {publicNavLinks.map((link, index) => {
             return (
               <NavLink
@@ -74,7 +84,7 @@ const Navbar = () => {
         </div>
 
         {/* Auth Routes */}
-        <div className={`flex items-center gap-1 ${glassBg}`}>
+        <div className={`hidden md:flex items-center gap-1 ${glassBg}`}>
           {user ? (
             <div
               onClick={handleLogout}
@@ -100,6 +110,70 @@ const Navbar = () => {
               </NavLink>
             </>
           )}
+        </div>
+
+        {/* Mobile Nav */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <AlignRightIcon />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              className="bg-background/80 backdrop-blur-sm shadow-md w-4/5 h-screen"
+              aria-describedby="mobile-nav-description"
+            >
+              <SheetHeader>
+                <SheetTitle className="pr-5 pt-20 flex items-center justify-end gap-2">
+                  <img
+                    src={LIBRIVERSE}
+                    alt="Logo"
+                    className="w-10 h-10 object-contain"
+                  />
+                  <p className="font-semibold text-gray-700">LibriVerse</p>
+                </SheetTitle>
+                <SheetDescription />
+
+                <div className="flex flex-col gap-4 w-5/6 mx-auto mt-4 text-end text-lg">
+                  {publicNavLinks.map((link, index) => {
+                    return (
+                      <NavLink
+                        key={index}
+                        to={link.route}
+                        className={({ isActive }) =>
+                          isActive
+                            ? "text-primary font-semibold py-1 my-0.5 "
+                            : "text-text"
+                        }
+                      >
+                        {link.name}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+                {/* If user */}
+                {user ? (
+                  <div
+                    onClick={handleLogout}
+                    className="flex items-center justify-end text-text pt-5 pr-5 text-lg gap-2"
+                  >
+                    <LogOutIcon />
+                    Logout
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 w-5/6 mx-auto mt-4 text-end text-lg">
+                    <NavLink to="/login" className="text-text">
+                      Login
+                    </NavLink>
+                    <NavLink to="/register" className="text-text">
+                      Register
+                    </NavLink>
+                  </div>
+                )}
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>
