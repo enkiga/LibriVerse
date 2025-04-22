@@ -1,5 +1,6 @@
 // Use axios to get the books from the GOOGLE BOOK API
 import axios from "axios";
+import client from "../client";
 
 const booksApi = axios.create({
   baseURL: "https://www.googleapis.com/books/v1/volumes",
@@ -48,9 +49,12 @@ const getBooks = async (page, limit, query) => {
   }
 };
 
-const getBookById = async (id) => {
+// get a book by id from client
+const getBookById = async (googleBooksId) => {
   try {
-    const response = await booksApi.get(`/${id}`);
+    const response = await client.get("book/get-book", {
+      params: { googleBooksId },
+    });
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

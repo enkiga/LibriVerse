@@ -8,12 +8,8 @@ const publicNavLinks = [
     name: "About Us",
   },
   {
-    route: "/books",
-    name: "Books",
-  },
-  {
-    route: "/profile",
-    name: "Profile",
+    route: "/contact",
+    name: "Contact Us",
   },
 ];
 

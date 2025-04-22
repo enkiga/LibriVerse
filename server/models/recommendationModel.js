@@ -1,15 +1,15 @@
 // Importing requirements
 const mongoose = require("mongoose");
 
-const recommendationSchema = mongoose.Schema(
+const recommendationSchema = new mongoose.Schema(
   {
     user: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     book: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Book",
       required: true,
     },
@@ -19,14 +19,19 @@ const recommendationSchema = mongoose.Schema(
     },
     likes: [
       {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
-    tags: [String],
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment", // Comments on this recommendation
+      },
+    ],
   },
   {
-    timestamp: true,
+    timestamps: true,
   }
 );
 

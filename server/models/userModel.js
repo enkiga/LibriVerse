@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const userSchema = mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
@@ -28,34 +28,28 @@ const userSchema = mongoose.Schema(
     profile: {
       bio: String,
       profilePicture: String,
-      favoriteGenres: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: "Genre",
-        },
-      ],
       favoriteBooks: [
         {
-          type: Schema.Types.ObjectId,
+          type: mongoose.Schema.Types.ObjectId,
           ref: "Book",
         },
       ],
     },
     followers: [
       {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
     following: [
       {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
   },
   {
-    timestamp: true,
+    timestamps: true,
   }
 );
 

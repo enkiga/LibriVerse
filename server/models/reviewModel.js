@@ -1,15 +1,15 @@
 // Importing requirements
 const mongoose = require("mongoose");
 
-const reviewSchema = mongoose.Schema(
+const reviewSchema = new mongoose.Schema(
   {
     user: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     book: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Book",
       required: true,
     },
@@ -19,17 +19,14 @@ const reviewSchema = mongoose.Schema(
       min: 1,
       max: 5,
     },
-    reviewText: String,
-    likes: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    reviewText: {
+      type: String,
+      trim: true,
+    },
   },
   {
-    timestamp: true,
+    timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Review", reviewSchema)
+module.exports = mongoose.model("Review", reviewSchema);

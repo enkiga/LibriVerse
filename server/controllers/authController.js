@@ -159,3 +159,123 @@ exports.getCurrentUser = async (req, res) => {
     });
   }
 };
+
+exports.addFavorite = async (req, res) => {
+  const { bookId } = req.body;
+  try {
+    // Check if the bookId is provided
+    if (!bookId) {
+      return res.status(400).json({
+        success: false,
+        message: "Book ID is required",
+      });
+    }
+
+    // Add the bookId to the user's favorites array found in user/profile/favoriteBooks
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $addToSet: { "profile.favoriteBooks": bookId } },
+      { new: true, runValidators: true }
+    )
+      .select("-password")
+      .populate("profile.favoriteBooks");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Book added to favorites",
+      user,
+    });
+  } catch (error) {
+    console.log("Add Favorite Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};
+
+// follow user
+exports.followUser = async (req, res) => {
+  const { userIdToFollow } = req.body;
+  try {
+    // Check if the userIdToFollow is provided
+    if (!userIdToFollow) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID to follow is required",
+      });
+    }
+
+    // Add the userIdToFollow to the user's following array
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $addToSet: { following: userIdToFollow } },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User followed successfully",
+      user,
+    });
+  } catch (error) {
+    console.log("Follow User Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};
+
+exports.unfollowUser = async (req, res) => {
+  const { userIdToUnfollow } = req.body;
+  try {
+    // Check if the userIdToUnfollow is provided
+    if (!userIdToUnfollow) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID to unfollow is required",
+      });
+    }
+
+    // Remove the userIdToUnfollow from the user's following array
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $pull: { following: userIdToUnfollow } },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User unfollowed successfully",
+      user,
+    });
+  } catch (error) {
+    console.log("Unfollow User Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};

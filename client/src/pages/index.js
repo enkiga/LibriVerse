@@ -6,6 +6,8 @@ import LoginPage from "./Login";
 import RegisterPage from "./Register";
 import BooksPage from "./Books";
 import ProfilePage from "./Profile";
+import BookDetailPage from "./BookDetail";
+import ErrorPage from "./Error";
 
 export {
   HomePage,
@@ -14,4 +16,6 @@ export {
   RegisterPage,
   BooksPage,
   ProfilePage,
+  BookDetailPage,
+  ErrorPage
 };

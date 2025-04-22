@@ -20,6 +20,8 @@ import {
   RegisterPage,
   BooksPage,
   ProfilePage,
+  BookDetailPage,
+  ErrorPage,
 } from "./pages";
 import { Toaster } from "./components/ui/sonner";
 import { UserProvider } from "./context/UserContext";
@@ -38,6 +40,7 @@ function App() {
           {/* Proteected Routes */}
           <Route element={<ProtectedLayout />}>
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="books/:id" element={<BookDetailPage />} />
           </Route>
         </Route>
 
@@ -50,7 +53,7 @@ function App() {
         </Route>
 
         {/* Catch-all Route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<ErrorPage />} />
       </Route>
     )
   );

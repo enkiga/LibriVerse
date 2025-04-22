@@ -39,3 +39,13 @@ export const getCurrentUser = async () => {
     throw error.response?.data || error.message;
   }
 };
+
+// add to favourites
+export const addToFavourites = async (bookId) => {
+  try {
+    const response = await client.patch("/auth/add-favorite", { bookId });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
