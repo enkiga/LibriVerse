@@ -7,7 +7,10 @@ router.post("/signup", authController.signup);
 router.post("/signin", authController.signin);
 router.post("/signout", identifier, authController.signout);
 router.get("/user", identifier, authController.getCurrentUser);
+router.get("/user-info/:userId", authController.getUserById);
 router.patch("/add-favorite", identifier, authController.addFavorite);
+router.patch("/delete-favorite", identifier, authController.removeFavorite);
+router.get("/favorite-books", identifier, authController.getAllFavourites);
 router.patch("/follow-user", identifier, authController.followUser);
 router.patch("/unfollow-user", identifier, authController.unfollowUser);
 

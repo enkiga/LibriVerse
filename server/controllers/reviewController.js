@@ -3,11 +3,26 @@ const Review = require("../models/reviewModel");
 // create a review
 exports.createReview = async (req, res) => {
   try {
-    const { bookId, userId, reviewText } = req.body;
+    const { bookId, rating, reviewText } = req.body;
+
+    // check if user has already reviewed the book
+    const existingReview = await Review.findOne({
+      user: req.user.userId,
+      book: bookId,
+    });
+
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already reviewed this book",
+      });
+    }
+
     const newReview = await Review.create({
-      bookId,
-      userId,
+      user: req.user.userId,
+      book: bookId,
       reviewText,
+      rating,
     });
     res.status(201).json({
       success: true,
@@ -28,10 +43,10 @@ exports.createReview = async (req, res) => {
 exports.updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const { reviewText } = req.body;
+    const { reviewText, rating } = req.body;
     const updatedReview = await Review.findByIdAndUpdate(
       reviewId,
-      { reviewText },
+      { reviewText, rating },
       { new: true, runValidators: true }
     );
     if (!updatedReview) {

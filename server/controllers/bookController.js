@@ -57,7 +57,6 @@ exports.getBook = async (req, res) => {
           : "",
         publisher: bookData.volumeInfo.publisher || "",
         publishedDate: bookData.volumeInfo.publishedDate || null,
-        rating: bookData.volumeInfo.averageRating || 0,
       });
       await book.save();
     }

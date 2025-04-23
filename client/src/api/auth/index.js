@@ -49,3 +49,13 @@ export const addToFavourites = async (bookId) => {
     throw error.response?.data || error.message;
   }
 };
+
+// Get user by id
+export const getUserById = async (userId) => {
+  try {
+    const response = await client.get(`auth/user-info/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

@@ -12,6 +12,19 @@ exports.createRecommendation = async (req, res) => {
       });
     }
 
+    // check if user has already recommended the book
+    const existingRecommendation = await Recommendation.findOne({
+      user: req.user.userId,
+      book: bookId,
+    });
+
+    if (existingRecommendation) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already recommended this book",
+      });
+    }
+
     // Create a new recommendation
     const recommendation = new Recommendation({
       user: req.user.userId,

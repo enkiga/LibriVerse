@@ -12,6 +12,19 @@ exports.createComment = async (req, res) => {
       });
     }
 
+    // check if user has already commented on the book
+    const existingComment = await comment.findOne({
+      userId: req.user.userId,
+      bookId,
+    });
+
+    if (existingComment) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already commented on this book",
+      });
+    }
+
     // Create a new comment
     const comment = new comment({
       userId: req.user.userId,

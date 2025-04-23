@@ -33,12 +33,6 @@ const bookSchema = new mongoose.Schema(
     description: String,
     coverImage: String,
     publishedDate: Date,
-    rating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
   },
   {
     timestamps: true,

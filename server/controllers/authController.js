@@ -201,7 +201,77 @@ exports.addFavorite = async (req, res) => {
   }
 };
 
-// follow user
+// remove from favorites
+exports.removeFavorite = async (req, res) => {
+  const { bookId } = req.body;
+  try {
+    // Check if the bookId is provided
+    if (!bookId) {
+      return res.status(400).json({
+        success: false,
+        message: "Book ID is required",
+      });
+    }
+
+    // Remove the bookId from the user's favorites array found in user/profile/favoriteBooks
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $pull: { "profile.favoriteBooks": bookId } },
+      { new: true, runValidators: true }
+    )
+      .select("-password")
+      .populate("profile.favoriteBooks");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Book removed from favorites",
+      user,
+    });
+  } catch (error) {
+    console.log("Remove Favorite Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};
+
+// get all favourite books
+exports.getAllFavourites = async (req, res) => {
+  try {
+    // User is already set in the request by the identifier middleware
+    const user = await User.findById(req.user.userId)
+      .select("-password")
+      .populate("profile.favoriteBooks");
+
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      books: user.profile.favoriteBooks,
+    });
+  } catch (error) {
+    console.log("Get All Favourites Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};
+
 exports.followUser = async (req, res) => {
   const { userIdToFollow } = req.body;
   try {
@@ -273,6 +343,41 @@ exports.unfollowUser = async (req, res) => {
     });
   } catch (error) {
     console.log("Unfollow User Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};
+
+// get user by id and return user data
+exports.getUserById = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    // Check if the userId is provided
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    // Find the user by ID and exclude the password field
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.log("Get User By ID Error", error);
     return res.status(500).json({
       success: false,
       message: `Server error: ${error}`,
