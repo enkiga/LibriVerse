@@ -9,10 +9,10 @@ export const createReview = async (reviewData) => {
   }
 };
 
-// get all reviews for a book
-export const getReviewsForBook = async (bookId) => {
+// get all reviews for a book 
+export const getReviewsForBook = async (book) => {
   try {
-    const response = await client.get("/review/view-review", bookId);
+    const response = await client.get(`/review/view-review/${book}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

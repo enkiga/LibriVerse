@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
@@ -75,7 +75,7 @@ const BookDetail = () => {
   const [averageRating, setAverageRating] = useState(0);
   const [ratingsDistribution, setRatingsDistribution] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [usersMap, setUsersMap] = useState({});
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -127,9 +127,7 @@ const BookDetail = () => {
           calculateRatingsMetrics(response.data.reviews);
         }
       } catch (error) {
-        toast("Failed to load reviews", {
-          description: `${error || "Failed to load reviews"} `,
-        });
+        console.error("Error fetching reviews:", error);
       } finally {
         setReviewsLoading(false);
       }
@@ -137,46 +135,7 @@ const BookDetail = () => {
     fetchReviewsData();
   }, [mongoBookId]);
 
-  // from review userId, get userId from auth and read username from it
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Get unique user IDs from reviews
-        const uniqueUserIds = [
-          ...new Set(reviews.map((review) => review.user)),
-        ];
-
-        // Filter out undefined/null IDs and IDs already in the map
-        const idsToFetch = uniqueUserIds.filter(
-          (userId) => userId && !usersMap[userId]
-        );
-
-        // Fetch user data for missing IDs
-        const userPromises = idsToFetch.map((userId) =>
-          auth.getUserById(userId).catch(() => null)
-        );
-
-        // Wait for all promises to resolve
-        const usersData = await Promise.all(userPromises);
-
-        // Update users map with new data
-        const newUsersMap = { ...usersMap };
-        usersData.forEach((userData, index) => {
-          if (userData?.success) {
-            newUsersMap[idsToFetch[index]] = userData.user.username;
-          }
-        });
-
-        setUsersMap(newUsersMap);
-      } catch (error) {
-        toast.error("Failed to load user data");
-      }
-    };
-
-    if (reviews.length > 0) {
-      fetchUserData();
-    }
-  }, [reviews]);
+  console.log(mongoBookId);
 
   // function to convert published date to a readable format
   const formatPublishedDate = (date) => {
@@ -304,6 +263,7 @@ const BookDetail = () => {
         setReviews(newReviews.data.reviews);
         calculateRatingsMetrics(newReviews.data.reviews);
         reviewForm.reset();
+        setIsDialogOpen(false);
       }
     } catch (error) {
       toast.error(error.message || "Failed to submit review");
@@ -418,7 +378,7 @@ const BookDetail = () => {
         <div className="w-full">
           <div className="flex flex-row w-full items-center justify-between mt-2 mb-4">
             <h1 className="font-semibold text-2xl">Ratings</h1>
-            <Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <PlusIcon />
@@ -498,78 +458,88 @@ const BookDetail = () => {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="flex flex-wrap">
-            <div className="md:w-1/3 w-full flex flex-col md:items-center justify-center space-y-4 py-3 md:py-0">
-              <p className="font-semibold text-xl">Average Ratings</p>
-              <h1 className="text-6xl font-bold">
-                <span className="text-primary">{averageRating}</span>/5
-              </h1>
-            </div>
-            <div className="md:w-2/3 w-full py-3 md:py-0">
-              <ChartContainer config={chartConfig} className="w-full h-40 ">
-                <BarChart
-                  accessibilityLayer
-                  data={ratingsDistribution}
-                  layout="vertical"
-                  margin={{
-                    left: -20,
-                  }}
-                >
-                  <XAxis type="number" dataKey="users" hide />
-                  <YAxis
-                    dataKey="ratingRange"
-                    type="category"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Bar dataKey="users" fill="var(--color-desktop)" radius={5} />
-                </BarChart>
-              </ChartContainer>
-            </div>
-          </div>
-          <h1 className="font-semibold text-2xl my-2">Reviews</h1>
-          <div className="">
-            <ScrollArea className="w-full h-96 p-4">
-              {reviewsLoading ? (
-                <LoadingSpinner />
-              ) : reviews.length === 0 ? (
-                <p className="text-gray-500">No reviews yet</p>
-              ) : (
-                reviews.map((review) => (
-                  <div
-                    key={review._id}
-                    className="mb-4 p-4 border-b last:border-b-0"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-row items-center justify-between w-full">
-                        <p className="font-semibold">
-                          {usersMap[review.user] || "Anonymous Reader"}{" "}
-                        </p>
-                        <div className="flex items-center gap-1 mt-1">
-                          {[...Array(Math.floor(review.rating))].map((_, i) => (
-                            <StarIcon
-                              key={i}
-                              className="w-4 h-4 text-yellow-500"
-                            />
-                          ))}
-                          {review.rating % 1 !== 0 && (
-                            <StarHalfIcon className="w-4 h-4 text-yellow-500" />
-                          )}
+          {reviewsLoading ? (
+            <LoadingSpinner />
+          ) : reviews.length === 0 ? (
+            <p className="text-gray-500 text-center my-5">No reviews yet! Be the first to leave a review and ratings</p>
+          ) : (
+            <div className="w-full">
+              <div className="flex flex-wrap">
+                <div className="md:w-1/3 w-full flex flex-col md:items-center justify-center space-y-4 py-3 md:py-0">
+                  <p className="font-semibold text-xl">Average Ratings</p>
+                  <h1 className="text-6xl font-bold">
+                    <span className="text-primary">{averageRating}</span>/5
+                  </h1>
+                </div>
+                <div className="md:w-2/3 w-full py-3 md:py-0">
+                  <ChartContainer config={chartConfig} className="w-full h-40 ">
+                    <BarChart
+                      accessibilityLayer
+                      data={ratingsDistribution}
+                      layout="vertical"
+                      margin={{
+                        left: -20,
+                      }}
+                    >
+                      <XAxis type="number" dataKey="users" hide />
+                      <YAxis
+                        dataKey="ratingRange"
+                        type="category"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Bar
+                        dataKey="users"
+                        fill="var(--color-desktop)"
+                        radius={5}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </div>
+              <h1 className="font-semibold text-2xl my-2">Reviews</h1>
+              <div className="">
+                <ScrollArea className="w-full h-96 p-4">
+                  {reviews.map((review) => (
+                    <div
+                      key={review._id}
+                      className="mb-4 p-4 border-b last:border-b-0"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex flex-row items-center justify-between w-full">
+                          <p className="font-semibold">
+                            {review.user?.username}{" "}
+                          </p>
+                          <div className="flex items-center gap-1 mt-1">
+                            {[...Array(Math.floor(review.rating))].map(
+                              (_, i) => (
+                                <StarIcon
+                                  key={i}
+                                  className="w-4 h-4 text-yellow-500"
+                                />
+                              )
+                            )}
+                            {review.rating % 1 !== 0 && (
+                              <StarHalfIcon className="w-4 h-4 text-yellow-500" />
+                            )}
+                          </div>
                         </div>
                       </div>
+                      <p className="mt-2 text-gray-600 text-justify tracking-wide">
+                        {review.reviewText}
+                      </p>
                     </div>
-                    <p className="mt-2 text-gray-600 text-justify tracking-wide">{review.reviewText}</p>
-                  </div>
-                ))
-              )}
-            </ScrollArea>
-          </div>
+                  ))}
+                </ScrollArea>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

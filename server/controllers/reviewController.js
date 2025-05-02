@@ -96,8 +96,18 @@ exports.deleteReview = async (req, res) => {
 // get all reviews for a book
 exports.getReviewsForBook = async (req, res) => {
   try {
-    const { bookId } = req.params;
-    const reviews = await Review.find({ bookId });
+    const { book } = req.params;
+    //
+    const reviews = await Review.find({ book })
+      .populate("user", "username email")
+      .populate("book", "title author googleBooksId");
+    if (reviews.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No reviews found for this book",
+      });
+    }
+
     res.status(200).json({
       success: true,
       results: reviews.length,
