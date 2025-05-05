@@ -25,9 +25,25 @@ const SuggestionsPage = () => {
     fetchSuggestions();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!suggestions.length) return <div>No suggestions available</div>;
+  if (loading)
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center">
+        Loading...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center">
+        Error: {error}
+      </div>
+    );
+  if (!suggestions.length)
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center">
+        No suggestions available! Recommend a book first to be ablle to tailor
+        your suggestions.
+      </div>
+    );
   return (
     <section className="pt-20 w-full">
       <div className="w-11/12 mx-auto">
