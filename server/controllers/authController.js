@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { signUpSchema, signInSchema } = require("../middlewares/validator");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
