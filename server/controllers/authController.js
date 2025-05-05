@@ -1,6 +1,8 @@
 const { signUpSchema, signInSchema } = require("../middlewares/validator");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Recommendation = require("../models/recommendationModel");
+const Review = require("../models/reviewModel");
 const { doHash, doHashValidation } = require("../utils/hashing");
 
 exports.signup = async (req, res) => {
@@ -273,20 +275,27 @@ exports.getAllFavourites = async (req, res) => {
 };
 
 exports.followUser = async (req, res) => {
-  const { userIdToFollow } = req.body;
+  const { UserId } = req.params;
   try {
-    // Check if the userIdToFollow is provided
-    if (!userIdToFollow) {
+    // Check if the UserId is provided
+    if (!UserId) {
       return res.status(400).json({
         success: false,
         message: "User ID to follow is required",
       });
     }
 
-    // Add the userIdToFollow to the user's following array
+    // Add the UserId to the user's following array
     const user = await User.findByIdAndUpdate(
       req.user.userId,
-      { $addToSet: { following: userIdToFollow } },
+      { $addToSet: { following: UserId } },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    // Update the followed user's followers array
+    await User.findByIdAndUpdate(
+      UserId,
+      { $addToSet: { followers: req.user.userId } },
       { new: true, runValidators: true }
     ).select("-password");
 
@@ -312,20 +321,27 @@ exports.followUser = async (req, res) => {
 };
 
 exports.unfollowUser = async (req, res) => {
-  const { userIdToUnfollow } = req.body;
+  const { UserId } = req.params;
   try {
-    // Check if the userIdToUnfollow is provided
-    if (!userIdToUnfollow) {
+    // Check if the UserId is provided
+    if (!UserId) {
       return res.status(400).json({
         success: false,
         message: "User ID to unfollow is required",
       });
     }
 
-    // Remove the userIdToUnfollow from the user's following array
+    // Remove the UserId from the user's following array
     const user = await User.findByIdAndUpdate(
       req.user.userId,
-      { $pull: { following: userIdToUnfollow } },
+      { $pull: { following: UserId } },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    // Update the unfollowed user's followers array
+    await User.findByIdAndUpdate(
+      UserId,
+      { $pull: { followers: req.user.userId } },
       { new: true, runValidators: true }
     ).select("-password");
 
@@ -354,7 +370,6 @@ exports.unfollowUser = async (req, res) => {
 exports.getUserById = async (req, res) => {
   const { userId } = req.params;
   try {
-    // Check if the userId is provided
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -362,8 +377,16 @@ exports.getUserById = async (req, res) => {
       });
     }
 
-    // Find the user by ID and exclude the password field
-    const user = await User.findById(userId).select("-password");
+    // Fetch user and convert to plain object using .lean()
+    const user = await User.findById(userId)
+      .select("-password")
+      .populate(
+        "profile.favoriteBooks",
+        "title author coverImage googleBooksId"
+      )
+      .populate("followers", "username")
+      .populate("following", "username")
+      .lean(); // Convert to plain object
 
     if (!user) {
       return res.status(404).json({
@@ -372,12 +395,70 @@ exports.getUserById = async (req, res) => {
       });
     }
 
+    // Fetch recommendations and reviews
+    const userRecommendations = await Recommendation.find({ user: userId })
+      .select("-user")
+      .populate("book", "title author coverImage googleBooksId")
+      .populate("likes", "username");
+
+    const userReviews = await Review.find({ user: userId })
+      .select("-user")
+      .populate("book", "title author coverImage");
+
+    // Add recommendations and reviews to the user object
+    user.recommendations = userRecommendations;
+    user.reviews = userReviews;
+
     res.status(200).json({
       success: true,
-      user,
+      data: user,
     });
   } catch (error) {
     console.log("Get User By ID Error", error);
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error}`,
+    });
+  }
+};
+
+// Implement a suggestion algorithm that suggests books to users based on their preferences and interactions.
+exports.suggestBooks = async (req, res) => {
+  try {
+    // Fetch all users and their favorite books
+    const users = await User.find()
+      .select("profile.favoriteBooks")
+      .populate(
+        "profile.favoriteBooks",
+        "title author coverImage googleBooksId"
+      );
+
+    // Create a map to store book suggestions
+    const bookSuggestions = {};
+
+    // Iterate through each user and their favorite books
+    users.forEach((user) => {
+      user.profile.favoriteBooks.forEach((book) => {
+        if (!bookSuggestions[book._id]) {
+          bookSuggestions[book._id] = {
+            id: book._id,
+            title: book.title,
+            author: book.author,
+            coverImage: book.coverImage,
+            googleBooksId: book.googleBooksId,
+          };
+        }
+      });
+    });
+
+    const bookSuggestionsArray = Object.values(bookSuggestions);
+
+    res.status(200).json({
+      success: true,
+      data: bookSuggestionsArray,
+    });
+  } catch (error) {
+    console.log("Suggest Books Error", error);
     return res.status(500).json({
       success: false,
       message: `Server error: ${error}`,

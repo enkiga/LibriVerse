@@ -1,35 +1,92 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUser } from "@/context/UserContext";
+import { useParams } from "react-router-dom";
 import { auth } from "@/api";
+import { useUser } from "@/context/UserContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import RecommendationsCard from "@/components/RecommendationsCard";
 import BookCard from "@/components/BookCard";
+import { Button } from "@/components/ui/button";
+import { set } from "react-hook-form";
 
-const ProfilePage = () => {
-  const { user, loading } = useUser();
+const UserAccountPage = () => {
   const [userData, setUserData] = useState(null);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  // get user id from url params
+  const { id: userId } = useParams();
+  const [loading, setLoading] = useState(false);
+  const { user } = useUser();
 
   // get user id from context
-  const userId = user?.user._id || null;
+  const currentUserId = user?.user._id || null;
 
-  // from auth api get user by id passing userId
-  const getUserById = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [userRes, currentUserRes] = await Promise.all([
+          auth.getUserById(userId),
+          auth.getUserById(currentUserId),
+        ]);
+        setUserData(userRes.data);
+        setCurrentUserData(currentUserRes.data);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId && currentUserId) fetchData();
+  }, [userId, currentUserId]);
+
+  // handle follow and unfollow
+  const followUser = async () => {
+    setLoading(true);
     try {
-      const response = await auth.getUserById(userId);
-      // Store response data in variable
-      setUserData(response.data);
+      await auth.followUser(userId);
+
+      // optimistically update the current user data in the state
+      setCurrentUserData((prev) => ({
+        ...prev,
+        following: [...prev.following, userId],
+      }));
+
+      setUserData((prev) => ({
+        ...prev,
+        followers: [...prev.followers, currentUserId],
+      }));
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error following user:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      getUserById();
-    }
-  }, [userId]);
+  const unfollowUser = async () => {
+    setLoading(true);
+    try {
+      await auth.unfollowUser(userId);
 
+      // optimistically update the current user data in the state
+      setCurrentUserData((prev) => ({
+        ...prev,
+        following: prev.following.filter((id) => id !== userId),
+      }));
+
+      setUserData((prev) => ({
+        ...prev,
+        followers: prev.followers.filter((id) => id !== currentUserId),
+      }));
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Convert both IDs to strings for comparison
+  const isFollowing = currentUserData?.following.some(
+    (id) => id.toString() === userId.toString()
+  );
   return (
     <>
       {loading ? (
@@ -66,6 +123,22 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
+          {/* Follow unfollow buttons */}
+          {/* check if current user is following the following userID */}
+          {isFollowing ? (
+            <Button
+              className="my-3 bg-red-800"
+              variant="destructive"
+              onClick={unfollowUser}
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Unfollow"}
+            </Button>
+          ) : (
+            <Button className="my-3" onClick={followUser} disabled={loading}>
+              {loading ? "Processing..." : "Follow"}
+            </Button>
+          )}
           {/* User recommendations */}
           <Tabs
             defaultValue="books"
@@ -135,4 +208,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default UserAccountPage;

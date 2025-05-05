@@ -2,7 +2,7 @@ import { publicNavLinks } from "@/lib/contants";
 import React from "react";
 import LIBRIVERSE from "@/assets/LIBRIVERSE.png";
 import { NavLink } from "react-router";
-import { AlignRightIcon, LogOutIcon } from "lucide-react";
+import { AlignRightIcon, LogOutIcon, User2Icon } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { auth } from "@/api";
 import {
@@ -14,6 +14,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "./ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const glassBg =
@@ -86,13 +94,30 @@ const Navbar = () => {
         {/* Auth Routes */}
         <div className={`hidden md:flex items-center gap-1 ${glassBg}`}>
           {user ? (
-            <div
-              onClick={handleLogout}
-              className="flex items-center text-gray-700 hover:text-[#ec8718] transition duration-500 ease-in-out px-2 py-1 my-0.5"
-            >
-              <LogOutIcon />
-              <p>Logout</p>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <User2Icon className="h-6 w-6 mx-1" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-gray-50 shadow-md rounded-md">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="flex items-center text-gray-700 hover:text-[#ec8718] transition duration-500 ease-in-out px-2 py-1 my-0.5">
+                  <NavLink to={`/profile`} className="flex items-center">
+                    <User2Icon className="h-4 w-4 mr-2" />
+                    Profile
+                  </NavLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <div
+                    onClick={handleLogout}
+                    className="flex items-center text-gray-700 hover:text-[#ec8718] transition duration-500 ease-in-out px-2 py-1 my-0.5"
+                  >
+                    <LogOutIcon className="h-4 w-4 mr-2" />
+                    Logout
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <NavLink

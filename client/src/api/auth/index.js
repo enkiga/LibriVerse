@@ -59,3 +59,34 @@ export const getUserById = async (userId) => {
     throw error.response?.data || error.message;
   }
 };
+
+
+// Suggest books
+export const suggestBooks = async () => {
+  try {
+    const response = await client.get("/auth/suggestions");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+// Follow user
+export const followUser = async (userId) => {
+  try {
+    const response = await client.patch(`/auth/follow-user/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+// Unfollow user
+export const unfollowUser = async (userId) => {
+  try {
+    const response = await client.patch(`/auth/unfollow-user/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

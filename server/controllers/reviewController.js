@@ -99,7 +99,7 @@ exports.getReviewsForBook = async (req, res) => {
     const { book } = req.params;
     //
     const reviews = await Review.find({ book })
-      .populate("user", "username email")
+      .populate("user", "username email _id")
       .populate("book", "title author googleBooksId");
     if (reviews.length === 0) {
       return res.status(404).json({

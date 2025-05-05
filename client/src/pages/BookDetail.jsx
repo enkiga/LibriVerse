@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getBookById } from "@/api/books";
 import { auth, recommendation, review } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -513,9 +513,12 @@ const BookDetail = () => {
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex flex-row items-center justify-between w-full">
-                          <p className="font-semibold">
+                          {/* <p className="font-semibold">
                             {review.user?.username}{" "}
-                          </p>
+                          </p> */}
+                          <Link to={`/profile/${review?.user?._id}`} className="font-semibold">
+                            {review.user?.username}
+                          </Link>
                           <div className="flex items-center gap-1 mt-1">
                             {[...Array(Math.floor(review.rating))].map(
                               (_, i) => (

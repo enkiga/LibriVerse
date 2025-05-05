@@ -8,6 +8,8 @@ import BooksPage from "./Books";
 import ProfilePage from "./Profile";
 import BookDetailPage from "./BookDetail";
 import ErrorPage from "./Error";
+import UserAccountPage from "./UserAccount";
+import SuggestionsPage from "./Suggestions";
 
 export {
   HomePage,
@@ -17,5 +19,7 @@ export {
   BooksPage,
   ProfilePage,
   BookDetailPage,
-  ErrorPage
+  ErrorPage,
+  UserAccountPage,
+  SuggestionsPage,
 };

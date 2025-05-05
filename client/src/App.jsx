@@ -22,6 +22,8 @@ import {
   ProfilePage,
   BookDetailPage,
   ErrorPage,
+  UserAccountPage,
+  SuggestionsPage,
 } from "./pages";
 import { Toaster } from "./components/ui/sonner";
 import { UserProvider } from "./context/UserContext";
@@ -41,6 +43,8 @@ function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="profile" element={<ProfilePage />} />
             <Route path="books/:id" element={<BookDetailPage />} />
+            <Route path="profile/:id" element= {<UserAccountPage/>} />
+            <Route path="suggestions" element={<SuggestionsPage />} />
           </Route>
         </Route>
 
