@@ -139,7 +139,7 @@ exports.signout = async (req, res) => {
     .clearCookie("Authorization", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
       path: "/",
     })
     .status(200)
