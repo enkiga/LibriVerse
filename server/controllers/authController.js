@@ -114,7 +114,7 @@ exports.signin = async (req, res) => {
       .cookie("Authorization", `Bearer ${token}`, {
         httpOnly: true, // Prevent XSS
         secure: process.env.NODE_ENV === "production", // Only secure in production
-        sameSite: "strict", // Prevent CSRF
+        sameSite: "none", // Prevent CSRF
         maxAge: 8 * 60 * 60 * 1000, // 8 hours
         path: "/",
       })

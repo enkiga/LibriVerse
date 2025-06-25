@@ -28,6 +28,8 @@ app.use(
   })
 );
 
+app.set("trust proxy", 1); // Trust first proxy for secure cookies
+
 // Assign port value with fallback
 const port = process.env.PORT || 8000;
 
