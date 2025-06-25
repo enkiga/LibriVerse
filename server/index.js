@@ -7,6 +7,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
+const connectToDatabase = require("./utils/dbConnect");
+
 const authRouter = require("./routers/authRouter");
 const bookRouter = require("./routers/bookRouter");
 const recommendationRouter = require("./routers/recommendationRouter");
@@ -34,14 +36,14 @@ app.set("trust proxy", 1); // Trust first proxy for secure cookies
 const port = process.env.PORT || 8000;
 
 // Connecting to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URL)
-  .then(() => {
-    console.log("Database connected");
-  })
-  .catch((err) => {
-    console.log(`MondoDB error ${err}`);
-  });
+(async () => {
+  try {
+    await connectToDatabase();
+    console.log("MongoDB is ready");
+  } catch (error) {
+    console.error("MongoDB failed to connect", error);
+  }
+})();
 
 app.use("/api/auth", authRouter);
 app.use("/api/book", bookRouter);
