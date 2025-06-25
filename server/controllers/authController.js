@@ -74,7 +74,7 @@ exports.signin = async (req, res) => {
     const { error, value } = signInSchema.validate({ email, password });
 
     if (error) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
         message: error.details[0].message,
       });
@@ -83,20 +83,14 @@ exports.signin = async (req, res) => {
     // Query DB
     const existingUser = await User.findOne({ email }).select("+password");
 
-    if (!existingUser) {
+    // COMBINED CHECK FOR USER AND PASSWORD
+    if (
+      !existingUser ||
+      !(await doHashValidation(password, existingUser.password))
+    ) {
       return res.status(401).json({
         success: false,
-        message: "User does not exist!",
-      });
-    }
-
-    // Password comparison
-    const result = await doHashValidation(password, existingUser.password);
-
-    if (!result) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials!",
+        message: "Invalid email or password.", // Generic message
       });
     }
 
@@ -112,37 +106,50 @@ exports.signin = async (req, res) => {
       }
     );
 
+    // Fetch user data without password
+    const userData = await User.findById(existingUser._id)
+      .select("-password");
+
     res
       .cookie("Authorization", `Bearer ${token}`, {
         httpOnly: true, // Prevent XSS
-        secure: true, // HTTPS only
-        sameSite: "none", // Prevent CSRF
+        secure: process.env.NODE_ENV === "production", // Only secure in production
+        sameSite: "strict", // Prevent CSRF
         maxAge: 8 * 60 * 60 * 1000, // 8 hours
         path: "/",
       })
       .json({
         success: true,
         token,
+        user: userData,
         message: "Logged in successfully",
       });
   } catch (error) {
     console.log("Sign In Error", error);
+    return res.status(500).json({
+      success: false,
+      message: "An internal server error occurred. Please try again later.",
+    });
   }
 };
 
 exports.signout = async (req, res) => {
+  // Pass the same options used to set the cookie
   res
-    .clearCookie("Authorization")
+    .clearCookie("Authorization", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    })
     .status(200)
     .json({ success: true, message: "Logged out successfully" });
 };
 
 exports.getCurrentUser = async (req, res) => {
   try {
-    // User is already set in the request by the identifier middleware
     const user = await User.findById(req.user.userId).select("-password");
 
-    // Check if user exists
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -155,10 +162,13 @@ exports.getCurrentUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.log("Get Current User Error", error);
+    // Use console.error for logging server errors
+    console.error("Get Current User Error:", error);
+
+    // Send a generic message to the client
     return res.status(500).json({
       success: false,
-      message: `Server error: ${error}`,
+      message: "An internal server error occurred.",
     });
   }
 };

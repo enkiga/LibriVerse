@@ -21,7 +21,7 @@ import { useUser } from "@/context/UserContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { refreshUser } = useUser(); // Get refreshUser function from context
+  const { login } = useUser(); // Get refreshUser function from context
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -36,30 +36,22 @@ const LoginPage = () => {
 
   // Define a submit handler.
   const onSubmit = async (values) => {
-    // Login Logic
-    try {
-      const { email, password } = values;
-      setIsLoading(true);
-      await auth.signin({ email, password });
+    setIsLoading(true);
+    setErrorMessage("");
 
-      // Wait for cookie to be set
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Refresh user data
-      await refreshUser(); // Call refreshUser to update user state
+    const { email, password } = values;
+    const response = await login({ email, password });
 
-      // Navigate to the home page after successful login
-      navigate("/");
-    } catch (error) {
-      console.error("Login failed:", error);
-      setIsLoading(false);
-      setErrorMessage(error.message || "Login failed. Please try again.");
-
+    if (response.success) {
+      navigate("/"); // login succeeded, navigate home
+    } else {
+      setErrorMessage(response.error);
       toast("Login Failed", {
-        description: `${error.message || "Invalid Credentials"}`,
+        description: response.error,
       });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   return (

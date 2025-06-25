@@ -1,138 +1,114 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/context/UserContext";
-import { auth } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import RecommendationsCard from "@/components/RecommendationsCard";
 import BookCard from "@/components/BookCard";
 
 const ProfilePage = () => {
   const { user, loading } = useUser();
-  const [userData, setUserData] = useState(null);
 
-  // get user id from context
-  const userId = user?.user._id || null;
+  // Early return if user data is not ready
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-  // from auth api get user by id passing userId
-  const getUserById = async () => {
-    try {
-      const response = await auth.getUserById(userId);
-      // Store response data in variable
-      setUserData(response.data);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+  if (!user) {
+    return (
+      <p className="text-center text-red-500 pt-20 font-semibold">
+        You need to be logged in to view your profile.
+      </p>
+    );
+  }
 
-  useEffect(() => {
-    if (userId) {
-      getUserById();
-    }
-  }, [userId]);
+  // Extract user info from context
+  const userData = user;
 
   return (
-    <>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <section className="w-11/12 mx-auto pt-20 flex flex-col">
-          {/* User information */}
-          <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between bg-white/60 shadow-md rounded-lg px-6 py-2 mb-6 border-l-6 border-primary">
-            <p className="text-gray-700  w-full text-3xl  font-semibold tracking-wider">
-              {userData?.username}
-            </p>
-            <div className="flex items-center gap-8 mt-2 w-full justify-between md:w-fit">
-              <div className="flex flex-col items-center gap-0.5">
-                {/* Get length of recommendation data */}
+    <section className="w-11/12 mx-auto pt-20 flex flex-col">
+      {/* User info card */}
+      <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between bg-white/60 shadow-md rounded-lg px-6 py-2 mb-6 border-l-6 border-primary">
+        <p className="text-gray-700 text-3xl font-semibold tracking-wider">
+          {userData.username}
+        </p>
+        <div className="flex items-center gap-8 mt-2 w-full justify-between md:w-fit">
+          <Stat label="Books" count={userData.recommendations?.length} />
+          <Stat label="Following" count={userData.following?.length} />
+          <Stat label="Followers" count={userData.followers?.length} />
+        </div>
+      </div>
 
-                <p className="font-semibold text-2xl">
-                  {userData?.recommendations.length}
-                </p>
-                <p className="text-sm">Books</p>
-              </div>
-              {/* Following */}
-              <div className="flex flex-col items-center gap-0.5">
-                <p className="font-semibold text-2xl">
-                  {userData?.following.length}
-                </p>
-                <p className="text-sm">Following</p>
-              </div>
-              {/* Followers */}
-              <div className="flex flex-col items-center gap-0.5">
-                <p className="font-semibold text-2xl">
-                  {userData?.followers.length}
-                </p>
-                <p className="text-sm">Followers</p>
-              </div>
-            </div>
-          </div>
-          {/* User recommendations */}
-          <Tabs
-            defaultValue="books"
-            className="w-full bg-white/60 shadow-md rounded-lg px-6 py-2 border-l-6 border-primary mb-5"
+      {/* Tabs section */}
+      <Tabs
+        defaultValue="books"
+        className="w-full bg-white/60 shadow-md rounded-lg px-6 py-2 border-l-6 border-primary mb-5"
+      >
+        <TabsList className="w-full flex justify-between items-center">
+          <TabsTrigger
+            value="books"
+            className="w-full text-center font-semibold text-lg"
           >
-            <TabsList className="w-full flex justify-between items-center">
-              <TabsTrigger
-                value="books"
-                className="w-full text-center font-semibold text-lg"
-              >
-                Books
-              </TabsTrigger>
-              <TabsTrigger
-                value="favorites"
-                className="w-full text-center font-semibold text-lg"
-              >
-                Favorites
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="books" className="pt-4">
-              {/* Check if recommendation is empty else map through it  */}
-              {userData?.recommendations.length === 0 ? (
-                <p className="text-center text-gray-500">
-                  No recommendations yet.
-                </p>
-              ) : (
-                <div className="flex flex-wrap justify-start mt-4">
-                  {userData?.recommendations.map((book) => (
-                    <>
-                      <RecommendationsCard
-                        key={book.book.googleBooksId}
-                        title={book.book.title}
-                        imageLink={book.book.coverImage}
-                        id={book.book.googleBooksId}
-                        text={book.recommendationText}
-                        likes={book.likes.length}
-                        comments={book.comments.length}
-                      />
-                    </>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+            Books
+          </TabsTrigger>
+          <TabsTrigger
+            value="favorites"
+            className="w-full text-center font-semibold text-lg"
+          >
+            Favorites
+          </TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="favorites" className="pt-4">
-              {userData?.profile?.favoriteBooks?.length === 0 ? (
-                <p className="text-center text-gray-500">No favorites yet.</p>
-              ) : (
-                <div className="flex flex-wrap justify-start mt-4">
-                  {userData?.profile?.favoriteBooks?.map((book) => (
-                    <>
-                      <BookCard
-                        key={book.googleBooksId}
-                        title={book.title}
-                        imageLink={book.coverImage}
-                        id={book.googleBooksId}
-                      />
-                    </>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </section>
-      )}
-    </>
+        {/* Books Tab */}
+        <TabsContent value="books" className="pt-4">
+          {Array.isArray(userData?.recommendations) &&
+          userData.recommendations.length > 0 ? (
+            <div className="flex flex-wrap justify-start mt-4">
+              {userData.recommendations.map((book) => (
+                <RecommendationsCard
+                  key={book.book.googleBooksId}
+                  title={book.book.title}
+                  imageLink={book.book.coverImage}
+                  id={book.book.googleBooksId}
+                  text={book.recommendationText}
+                  likes={book.likes.length}
+                  comments={book.comments.length}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No recommendations yet.</p>
+          )}
+        </TabsContent>
+
+        {/* Favorites Tab */}
+        <TabsContent value="favorites" className="pt-4">
+          {Array.isArray(userData?.profile?.favoriteBooks) &&
+          userData.profile.favoriteBooks.length > 0 ? (
+            <div className="flex flex-wrap justify-start mt-4">
+              {userData.profile.favoriteBooks.map((book) => (
+                <BookCard
+                  key={book.googleBooksId}
+                  title={book.title}
+                  imageLink={book.coverImage}
+                  id={book.googleBooksId}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No favorites yet.</p>
+          )}
+        </TabsContent>
+      </Tabs>
+    </section>
   );
 };
+
+// Reusable stat component
+const Stat = ({ label, count }) => (
+  <div className="flex flex-col items-center gap-0.5">
+    <p className="font-semibold text-2xl">{count ?? 0}</p>
+    <p className="text-sm">{label}</p>
+  </div>
+);
 
 export default ProfilePage;

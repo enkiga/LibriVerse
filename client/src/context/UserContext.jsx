@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { auth } from "@/api";
+import { auth } from "@/api"; // auth contains signin, signout, getCurrentUser
 
 const UserContext = createContext();
 
@@ -14,45 +14,62 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Create a memoized refresh function
-  const refreshUser = useCallback(async () => {
-    setLoading(true);
+  // This function is now only for checking an existing session on page load
+  const refreshUserOnLoad = useCallback(async () => {
     try {
-      const userData = await auth.getCurrentUser();
-      setUser(userData);
+      // getCurrentUser returns { success: true, user: { ... } }
+      const response = await auth.getCurrentUser();
+      if (response.success) {
+        setUser(response.user);
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       setUser(null);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
-  // Initial fetch and auto-refresh setup
   useEffect(() => {
-    // First load check
-    refreshUser();
+    setLoading(true);
+    refreshUserOnLoad().finally(() => setLoading(false));
+  }, [refreshUserOnLoad]);
 
-    // Auto-refresh when window regains focus
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        refreshUser();
+  // The new, more efficient login function
+  const login = useCallback(async (credentials) => {
+    try {
+      // The improved signin API now returns the user data directly
+      const response = await auth.signin(credentials);
+      if (response.success) {
+        setUser(response.user); // Set user immediately
+        return { success: true };
       }
-    };
+      // This case handles potential (but unlikely) non-error failures
+      return { success: false, error: response.message };
+    } catch (error) {
+      setUser(null);
+      return { success: false, error: error.message || "Login failed" };
+    }
+  }, []);
 
-    window.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      window.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [refreshUser]);
+  // Logout function remains the same
+  const logout = useCallback(async () => {
+    try {
+      await auth.signout();
+    } catch (error) {
+      console.error("Signout API call failed, logging out on client:", error);
+    } finally {
+      setUser(null); // Ensure user is logged out on the client regardless of API success
+    }
+  }, []);
 
-  // Memoize context value
   const memoizedValue = useMemo(
     () => ({
       user,
       loading,
-      refreshUser, // Expose refresh function
-      setUser,
+      login,
+      logout,
     }),
-    [user, loading, refreshUser]
+    [user, loading, login, logout]
   );
 
   return (
@@ -62,6 +79,7 @@ export const UserProvider = ({ children }) => {
   );
 };
 
+// The useUser hook remains unchanged
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
