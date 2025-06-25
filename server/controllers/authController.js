@@ -2,6 +2,7 @@ require("dotenv").config();
 const { signUpSchema, signInSchema } = require("../middlewares/validator");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Book = require("../models/bookModel");
 const Recommendation = require("../models/recommendationModel");
 const Review = require("../models/reviewModel");
 const { doHash, doHashValidation } = require("../utils/hashing");
@@ -107,8 +108,7 @@ exports.signin = async (req, res) => {
     );
 
     // Fetch user data without password
-    const userData = await User.findById(existingUser._id)
-      .select("-password");
+    const userData = await User.findById(existingUser._id).select("-password");
 
     res
       .cookie("Authorization", `Bearer ${token}`, {
@@ -436,43 +436,65 @@ exports.getUserById = async (req, res) => {
 // Implement a suggestion algorithm that suggests books to users based on their preferences and interactions.
 exports.suggestBooks = async (req, res) => {
   try {
-    // Fetch all users and their favorite books
-    const users = await User.find()
-      .select("profile.favoriteBooks")
-      .populate(
-        "profile.favoriteBooks",
-        "title author coverImage googleBooksId"
-      );
+    // Step 1: Get the current user's favorite books.
+    // Assumes an `authMiddleware` has attached `req.user`.
+    const currentUser = await User.findById(req.user.userId).select(
+      "profile.favoriteBooks"
+    );
+    if (!currentUser || currentUser.profile.favoriteBooks.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [], // Return empty array if user has no favorites to base suggestions on
+      });
+    }
 
-    // Create a map to store book suggestions
-    const bookSuggestions = {};
+    const currentUserFavoriteIds = currentUser.profile.favoriteBooks.map((id) =>
+      id.toString()
+    );
 
-    // Iterate through each user and their favorite books
-    users.forEach((user) => {
-      user.profile.favoriteBooks.forEach((book) => {
-        if (!bookSuggestions[book._id]) {
-          bookSuggestions[book._id] = {
-            id: book._id,
-            title: book.title,
-            author: book.author,
-            coverImage: book.coverImage,
-            googleBooksId: book.googleBooksId,
-          };
-        }
+    // Step 2: Find "similar" users who have at least one favorite book in common.
+    const similarUsers = await User.find({
+      "profile.favoriteBooks": { $in: currentUser.profile.favoriteBooks }, // Find users with overlapping favorites
+      _id: { $ne: req.user.userId }, // Exclude the current user
+    }).select("profile.favoriteBooks");
+
+    // Step 3: Aggregate all favorite books from these similar users.
+    const suggestionPool = new Set();
+    similarUsers.forEach((user) => {
+      user.profile.favoriteBooks.forEach((bookId) => {
+        suggestionPool.add(bookId.toString());
       });
     });
 
-    const bookSuggestionsArray = Object.values(bookSuggestions);
+    // Step 4: Filter out books the current user already has in their favorites.
+    const finalSuggestionIds = [...suggestionPool].filter(
+      (bookId) => !currentUserFavoriteIds.includes(bookId)
+    );
+
+    // Step 5: Populate the suggestions with full book details.
+    const suggestions = await Book.find({
+      _id: { $in: finalSuggestionIds },
+    }).select("title author coverImage googleBooksId"); // Assuming you have a Book model
+
+    // if suggestions is empty, return a message
+    if (suggestions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "No suggestions available! Favorite a book first to tailor your suggestions.",
+      });
+    }
 
     res.status(200).json({
       success: true,
-      data: bookSuggestionsArray,
+      data: suggestions,
     });
   } catch (error) {
-    console.log("Suggest Books Error", error);
+    console.error("Suggest Books Error:", error); // Log the real error on the server
     return res.status(500).json({
       success: false,
-      message: `Server error: ${error}`,
+      message:
+        "An internal server error occurred while generating suggestions.", // Generic message for the client
     });
   }
 };
