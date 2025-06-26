@@ -1,4 +1,4 @@
-// lib/db.js or utils/db.js (create a separate file for clarity)
+// File: lib/db.js
 const mongoose = require("mongoose");
 
 let cached = global.mongoose;
@@ -13,9 +13,11 @@ async function connectToDatabase() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URL, {
-      bufferCommands: false,
-    });
+    cached.promise = mongoose
+      .connect(process.env.MONGODB_URL, {
+        bufferCommands: false,
+      })
+      .then((mongoose) => mongoose);
   }
 
   try {

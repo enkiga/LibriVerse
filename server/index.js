@@ -45,10 +45,18 @@ const port = process.env.PORT || 8000;
   }
 })();
 
+// Check DB disconnection
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️ MongoDB disconnected");
+});
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB error:", err);
+});
+
 app.use("/api/auth", authRouter);
 app.use("/api/book", bookRouter);
 app.use("/api/recommendation", recommendationRouter);
-app.use("api/comment", commentRouter);
+app.use("/api/comment", commentRouter);
 app.use("/api/review", reviewRouter);
 
 // Test to see if server is running

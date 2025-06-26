@@ -6,8 +6,10 @@ const Book = require("../models/bookModel");
 const Recommendation = require("../models/recommendationModel");
 const Review = require("../models/reviewModel");
 const { doHash, doHashValidation } = require("../utils/hashing");
+const connectToDatabase = require("../utils/dbConnect");
 
 exports.signup = async (req, res) => {
+  await connectToDatabase(); // Ensure DB connection is established
   const { username, email, password } = req.body;
   try {
     const { error, value } = signUpSchema.validate({
@@ -69,6 +71,7 @@ exports.signup = async (req, res) => {
 };
 
 exports.signin = async (req, res) => {
+  await connectToDatabase(); // Ensure DB connection is established
   const { email, password } = req.body;
 
   try {
@@ -107,8 +110,8 @@ exports.signin = async (req, res) => {
       }
     );
 
-    // Fetch user data without password
-    const userData = await User.findById(existingUser._id).select("-password");
+    // Fetch user data from existingUser
+    const { password: _, ...userData } = existingUser.toObject();
 
     res
       .cookie("Authorization", `Bearer ${token}`, {
